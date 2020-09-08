@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=640,user-scalable=no" />
+  <title>“珠澳同影”主题摄影活动开始点赞啦！</title>
+  <link rel="stylesheet" href="./css/index.css?a=wlm">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.0.2/css/swiper.min.css"> 
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.9/lib/index.css" />
+</head>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  html {
+    font-size: 10px;
+    height: 100%;
+    /* 禁止iOS微信字体大小调整 */
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+  }
+  body {
+    font-size: 2.6rem;
+    height: 100%;
+  }
+  #app {
+    height: 100%;
+  }
+</style>
+<body>
+  <div id="app">
+    <!-- 手机端打开提示页 -->
+		<div class="cr-page-qr-hint" style="display: none;">
+			<div class="cr-ab-qr-hint"></div>
+			<div class="cr-ab-hint-qr-text">请在手机端打开效果更佳</div>
+		</div>
+    <!-- 屏幕锁定旋转竖屏观看提示页 -->
+    <div class="cr-page-screen-hint" style="display: none;">
+      <div class="cr-ab-screen-hint"></div>
+      <div class="cr-ab-hint-screen-text">请将手机屏幕旋转锁定后<br/>竖屏观看体验效果更佳</div>
+    </div>
+    <!-- 首页 -->
+    <div class="home" style="display: none;">
+      <!-- <van-notice-bar
+        scrollable
+        color="#fff"
+        background="rgba(0,0,0,0.3)"
+        left-icon="volume"
+        text="用户abcdg*h获得一等奖，用户bf%&8获得二等奖，用户c8a&%@获得三等奖，用户ie*(^%)获得二等奖，用户(^_^)获得二等奖"
+      ></van-notice-bar> -->
+      <div class="title"></div>
+      <div class="title-text">
+        <span style="color: #ffe845;">主办单位：</span>
+        <span>珠海传媒新媒体运营有限公司、珠海大横琴泛旅游发展有限公司</span>
+      </div>
+      <div class="rules" @click="openRules">
+        <a v-if="isWinning" href="https://wechat.ip885.cn/cr/my-coupon/index.html?wid=8"><img src="./imgs/gift.png"></a>
+      </div>
+      <div class="search">
+        <img src="./imgs/search-img.png" style="margin-right: 15px;">
+        <input type="text" placeholder="输入作品编号/姓名搜索一下吧~" v-model="serachValue" @keyup.enter="search">
+      </div>
+      <div class="video-wrap">
+        <div class="video-item" v-for="(item, index) in allWorkList" :key="item.id">
+          <div class="number">作品编号：{{item.extend === null?"无":item.extend}}</div>
+          <div class="svideo">
+            <img v-if="index < 4" :src="item.file" @click="openImgDetail(item.file, item.description, index, item.images)">
+            <img v-else v-lazy="item.file" alt="" @click="openImgDetail(item.file, item.description, index, item.images)">
+            <!-- <div class="video-modal-img">
+              <img src="./imgs/play-img.png">
+            </div> -->
+          </div>
+          <div class="b-text">
+            <span class="name">{{item.title}}</span>
+            <span style="margin: 0px 12px 0 5px;">{{item.amount}}</span>
+            <div style="display: flex; align-items: center;">
+              <span style="margin-right: 15px;">赞</span>
+              <input :id="item.id" class="checkBOx" type="checkbox" @click="select(item.id, index)" style="width: 30px; height: 30px; z-index: 111;">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 底部点赞 -->
+      <div style="height: 80px;"></div>
+      <div class="bottom-nav" v-if="selectList.length > 0">
+        <div style="color: #333; letter-spacing: 2px;">已选择{{selectList.length}}/5个作品</div>
+        <div style="color: #ff5926; margin: 0 130px 0 35px;" @click="cancle">取消</div>
+        <div class="vote" @click="vote">点赞</div>
+      </div>
+    </div>
+    <!-- 加载 -->
+    <div class="loading" style="display: block;">
+      <div class="cr-ab-loading-bg">
+				<div class="cr-loading-box">
+					<div class="cr-loading-number">页面加载中 0%</div>
+					<div class="cr-loading-rate"></div>
+				</div>
+			</div>
+    </div>
+    <!-- 规则页 -->
+    <div class="activity-rules" style="display: none;">
+      <div class="rules-body">
+        <div class="rules-content">
+          <div style="color: red; text-align: center; margin: 10px auto 20px auto;">活动规则</div>
+          <div>一、点赞时间：2020年9月7日—9月10日24:00</div>
+          <div>二、点赞规则：</div>
+          <div>1、用户通过观海App或微信平台进入活动页面，可选择喜爱的作品进行投票。</div>
+          <div>2、每人每天可在单一平台投票2次，每次可选2-5个作品投票，微信端及观海APP最多可各投10票。</div>
+          <div>3、观海App点赞成功后可参与抽奖，每天有一次抽奖机会，活动期间每人有且仅有一次中奖机会。</div>
+          <div>4、作品网络点赞比分占总成绩40%，专业评审比分占总成绩60%，按总分从高到低确定最终名次。</div>
+          <div>5、禁止刷票，后台发现刷票将取消参赛资格。</div>
+          <div>6、活动最终解释权归珠海传媒集团所有。</div>
+          <div>三、奖项设置</div>
+          <div>活动奖品：</div>
+          <div>一等奖：星乐度酒店星际六人间一晚，共20名。</div>
+          <div>二等奖：星乐度酒店标间一晚，共30名。</div>
+          <div>三等奖：星奇塔无动力世界门票2张，共50名。</div>
+          <div>观海APP点赞抽奖奖品：</div>
+          <div>星乐度酒店星际六人间，共10名。</div>
+          <!-- <div>活动最终解释权归珠海传媒集团所有。</div> -->
+        </div>
+        <div class="close" @click="closeRules"></div>
+      </div>
+    </div>
+    <!-- 图片详情页 -->
+    <div class="video-detail" style="display: none;">
+      <div class="detail-body">
+        <!-- <div class="detail-video">
+          <img @click="previewImg(imgUrl)" :src="imgUrl" style="width: auto; height: auto; max-width: 100%; max-height: 100%;"></img>
+        </div>
+        <div class="synopsis">
+          <div class="detail-text"></div>
+          <div class="synopsis-text">
+            {{description}}
+          </div>
+        </div> -->
+        <div class="detail-video" v-if="imgUrl !== ''">
+          <img :src="imgUrl" @click="previewImg(imgUrl)" style="width: auto; height: auto; max-width: 100%; max-height: 100%;"></img>
+        </div>
+        <div class="swiper-container" v-else>
+          <div class="swiper-wrapper">
+            <div class="swiper-slide" v-for="(item, index) in imagesList" :key="index">
+              <div class="detail-video">
+                <img :data-src="item" class="swiper-lazy" @click="previewImg(item)" style="width: auto; height: auto; max-width: 100%; max-height: 100%;"></img>
+                <div class="swiper-lazy-preloader swiper-lazy-preloader-black"></div>
+              </div>
+            </div>
+          </div>
+          <div v-if="imagesList.length > 1" class="swiper-button-prev"></div>
+          <div v-if="imagesList.length > 1" class="swiper-button-next"></div>
+        </div>
+        <div class="synopsis">
+          <div class="detail-text"></div>
+          <div class="synopsis-text">
+            {{description}}
+          </div>
+        </div>
+      </div>
+      <div class="close-video-detail" @click="closeVideoDetail"></div>
+    </div>
+    <!-- 预览图片 -->
+    <div class="preview-img" style="display: none;" @click="outPreviewImg">
+      <div class="p-img-wrap">
+        <img :src="bigImgUrl" style="width: auto; height: auto; max-width: 100%; max-height: 100%;">
+      </div>
+	    <!-- <div class="closePreviewImg"></div>
+      <div class="p-img-wrap" v-if="imgUrl !== ''">
+        <img :src="imgUrl" style="width: auto; height: auto; max-width: 100%; max-height: 100%;">
+      </div>
+      <div class="swiper-container1" v-else>
+        <div class="swiper-wrapper">
+          <div class="swiper-slide" v-for="(item, index) in imagesList" :key="index">
+            <div style="color: #fff; text-align: center; font-size: 32px;">{{index + 1}}/{{imagesList.length}}</div>
+            <div class="p-img-wrap">
+              <img :src="item" style="width: auto; height: auto; max-width: 100%; max-height: 100%;">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="preview-text">简介：{{description}}</div> -->
+    </div>
+
+    <!-- 微信点赞后提示 -->
+    <div class="down-modal" style="display: none;" @click="closeDown('down-modal')">
+      <div class="app-vote-tips">
+        <div v-if="voteNum" style="font-weight: bold;">点赞成功</div>
+        <div v-else style="font-weight: bold;">今天微信点赞次数已用完</div>
+        <div style="margin: 40px;">打开观海app，为TA点赞助力</div>
+        <!-- <div class="draw-wrap" @click="getGift">点击抽奖</div> -->
+        <a class="b-red-text" href="https://pub-zhtb.hizh.cn/apk/download/index.html">打开观海app，再投5票</a>
+      </div>
+    </div>
+    <!-- <div class="down-modal2" style="display: none;" @click="closeDown('down-modal2')">
+      <div class="app-vote-tips">
+        <div style="font-weight: bold;">今天微信点赞次数已用完</div>
+        <div style="margin: 40px;">打开观海app，为TA点赞助力</div>
+        <div class="draw-wrap" @click="getGift">点击抽奖</div>
+        <a class="b-red-text" href="https://pub-zhtb.hizh.cn/apk/download/index.html">打开观海app，再投5票</a>
+      </div>
+    </div> -->
+    <!-- app点赞后提示 -->
+    <div class="app-modal" style="display: none;" @click="closeDown('app-modal')">
+      <div class="app-vote-tips" style="height: 200px;">
+        <div v-if="voteNum" style="font-weight: bold; margin-bottom: 40px;">点赞成功</div>
+        <div v-else style="font-weight: bold; margin-bottom: 40px;">今天点赞次数已用完</div>
+        <div v-if="lotterynum > 0" class="draw-wrap" style="border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;" @click="getGift">点击抽奖</div>
+        <div v-else class="draw-wrap" style="border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">今日已抽奖</div>
+      </div>
+    </div>
+    <!-- <div class="app-modal2" style="display: none;" @click="closeDown('app-modal2')">
+      <div class="app-vote-tips" style="height: 200px;">
+        <div style="font-weight: bold; margin-bottom: 40px;">今天点赞次数已用完</div>
+        <div class="draw-wrap" style="border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;" @click="getGift">点击抽奖</div>
+      </div>
+    </div> -->
+    <!-- 抽奖页 -->
+    <div class="lucky-draw" style="display: none;">
+      <!-- <img src="https://res.zhrct.com/answer_draw/img/draw.gif"> -->
+      <div class="ribbon"></div>
+      <!-- <div class="lucky-draw-title">幸运大抽奖</div> -->
+      <img src="https://wechat.ip885.cn/tvyun/sites/act/photography/imgs/draw1.gif" style="width: 700px; height: 700px;">
+    </div>
+    <!-- 中奖提示 -->
+    <div class="mask" style="display: none;">
+      <div class="blin"></div>
+      <div class="caidai"></div>
+      <div class="winning-toast reback">
+        <div class="red-head"></div>
+        <div class="red-body"></div>
+        <div class="red-card"></div>
+        <div class="winning-text">恭喜你,获得了{{prizeName}}</div>
+        <a href="https://wechat.ip885.cn/cr/my-coupon/index.html?wid=8" class="draw-btn"></a>
+        <div class="guanbi2" @click="closeMask"></div>
+      </div>
+    </div>
+    <!-- app登录提示 -->
+    <div class="app-login" style="display: none;">
+      <div class="modal-wrap">
+        <div class="modal-text" @click="toAppLogin">请先登录</div>
+      </div>
+    </div>
+  </div>
+  <script src="./js/vue@2.6.11.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/axios.min.js"></script>
+  <script src="./js/showText.js"></script>
+  <script src="./js/preloadjs.min.js"></script>
+  <script src="./js/jquery.qrcode.min.js"></script>
+  <script src="./js/main.js?a=lvm"></script>
+  <script src="https://unpkg.com/vue-lazyload/vue-lazyload.js"></script>
+  <!-- <script src="https://app.itmin.cn/commonstatic/js/vconsole.min.js"></script> -->
+  <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+  <script src="https://res.zhrct.com/guanghaisdk/GuanghaiAppSdk.js?rand=1222"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/4.0.2/js/swiper.min.js"></script>
+  <script>
+    // var vConsole = new VConsole()
+    var GHapp = new GHApp(16)
+    Vue.use(VueLazyload)
+    function isWeiXin() {
+          //window.navigator.userAgent属性包含了浏览器类型、版本、操作系统类型、浏览器引擎类型等信息，这个属性可以用来判断浏览器类型
+          var ua = window.navigator.userAgent.toLowerCase();
+          //通过正则表达式匹配ua中是否含有MicroMessenger字符串
+          if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+              return true;
+          } else {
+              return false;
+          }
+      }
+    function getCookie(c_name) {
+        if (document.cookie.length > 0) {
+            c_start = document.cookie.indexOf(c_name + "=");
+            if (c_start != -1) {
+                c_start = c_start + c_name.length + 1;
+                c_end = document.cookie.indexOf(";", c_start);
+                if (c_end == -1)
+                    c_end = document.cookie.length;
+                return unescape(document.cookie.substring(c_start, c_end));
+            }
+        }
+        return "";
+    }
+    const app = new Vue({
+      el: '#app',
+      data () {
+        return {
+          allWorkList: [],
+          selectList: [],
+          swiperList: [],
+          token: '',
+          serachValue: '',
+          imgUrl: '',
+          description: '',
+          prizeName: '',
+          webStatus: 0,
+          lotterynum: '',
+          isWinning: false,
+          voteNum: false,
+          // swiperImgIndex: '',
+          imagesList: [],
+          bigImgUrl: ''
+        }
+      },
+      created () {
+        //以下这段为获取微信jssdk相关
+        var title = encodeURIComponent("“珠澳同影”主题摄影活动开始点赞啦！")
+        var description = encodeURIComponent("点赞成功即可抽取免费住宿！")
+        var thumb = encodeURIComponent("https://wechat.ip885.cn/tvyun/sites/act/photography/imgs/thumb.png")
+        var url = encodeURIComponent("https://wechat.ip885.cn/tvyun/sites/act/photography")
+        var href = "https://wechat.ip885.cn/tvyun/?m=act&a=share&sa=wxJsSdkWithShare&rand="+(new Date()).valueOf()
+        +"&reffer=" +encodeURIComponent(window.location.href) + "&title=" + title + "&description=" + description
+        +"&thumb=" + thumb + "&url=" + url;
+        var head= document.getElementsByTagName('head')[0];
+        var script= document.createElement('script');
+        script.type= 'text/javascript';
+        script.src= href;
+        head.appendChild(script);
+        if (isWeiXin()) {
+            this.token = localStorage.getItem("wechat_token") ? localStorage
+                .getItem("wechat_token") : getCookie("wechat_token");
+            if (!this.token) {
+                window.location.href = '/wechat/oauth/8'
+                        + "?rdurl=" + encodeURIComponent(window.location.href)
+            }
+            console.log(this.token);
+            this.webStatus = 1
+        } else {
+          var isInApp = GHapp.isInApp;
+          if(isInApp){
+              GHapp.oauthApp();
+              setTimeout(function(){
+                  window.location.href = "js://guanhai_showsharebutton";
+              },300);
+              setTimeout(function(){
+                  window.location.href = "js://guanhai_setshare_parame?title=“珠澳同影”主题摄影活动开始点赞啦！&description=点赞成功即可抽取免费住宿！"+
+                  "&url=" +
+                  encodeURIComponent("https://wechat.ip885.cn/tvyun/sites/act/photography");
+              },100);
+              
+              this.token = GHapp.token;
+              console.log(this.token);
+              this.webStatus = 2
+          }
+        }
+        this.getAllWorkList ()
+        this.getlotterynum()
+        this.openGift()
+      },
+      methods: {
+        // 获取总的列表页
+        getAllWorkList () {
+          var voteid = 'https://wechat.ip885.cn/wechatapi/vote/zPdy7aQr'
+          let url = voteid+"/getvoteitemlist"
+          axios({
+            url,
+            params: {
+              perpage: 200,
+              state: 1,//0表示未审核 1表示通过审核 2表示不通过审核
+              page: 1
+            }
+          }).then((res) => {
+            this.allWorkList = res.data.data.data.sort((a, b) => { return a.extend - b.extend })
+          })
+        },
+        // 选择
+        select (id, index) {
+          if(event.target.checked) {
+            this.selectList.push(id)
+          } else {
+            this.selectList.splice(this.selectList.indexOf(id),1)
+          }
+          if (this.selectList.length > 5) {
+            showToast({
+              text: '最多选择五个作品',
+              zindex: 132
+            })
+            this.selectList.splice(this.selectList.indexOf(id),1)
+            $(event.target).prop("checked", false)
+            return false;
+          }
+          // console.log(index)
+          // console.log(this.selectList)
+        },
+        // 取消选择
+        cancle () {
+          $('input[type=checkbox]').prop("checked", false)
+          this.selectList = []
+        },
+        // 打开规则
+        openRules () {
+          $('.activity-rules').fadeIn()
+        },
+        // 关闭规则
+        closeRules () {
+          $('.activity-rules').fadeOut()
+          $('.home').fadeIn()
+        },
+        // 打开详情
+        openImgDetail (url, description, index, images) {
+          // $('.video-detail').fadeIn()
+          this.description = description
+          // this.swiperImgIndex = index
+          if (images !== null) {
+            this.imagesList = images
+            // console.log('this.imagesList', this.imagesList)
+          } else {
+            this.imgUrl = url
+            // console.log('this.imgUrl', this.imgUrl)
+          }
+          $('.video-detail').fadeIn()
+          // new
+          // $('.preview-img').fadeIn()
+        },
+        // 关闭图片详情
+        closeVideoDetail () {
+          this.imgUrl = ''
+          this.imagesList = []
+          $('.video-detail').fadeOut()
+        },
+        // 预览图片
+        previewImg (url) {
+          // this.bigImgUrl = url
+          // $('.preview-img').fadeIn()
+        },
+        // 退出推按预览
+        outPreviewImg () {
+          // this.bigImgUrl = ''
+          // $('.preview-img').fadeOut()
+        },
+        // 点赞
+        vote () {
+          // app里面 先登录
+          if(this.webStatus == 2) {
+            if (this.token == '') {
+              $('.app-login').fadeIn()
+              return false
+            }
+          }
+          if(this.selectList.length < 2) {
+            showToast({
+              text: '至少选择两个作品点赞',
+              zindex: 132
+            })
+          } else if (this.selectList.length > 5) {
+            showToast({
+              text: '最多选择五个作品点赞',
+              zindex: 132
+            })
+          } else {
+            var voteid = 'https://wechat.ip885.cn/wechatapi/vote/zPdy7aQr'
+            let url = voteid+"/vote"
+            var fd = {
+                'vid': this.selectList,//点赞的id数组
+            };
+            axios.post(url,fd,{
+                headers: {
+                    Accept: "application/json",
+                    Authorization: 'Bearer '+ this.token
+                }
+            }).then((res) => {
+                if(res.data.status == 200) {
+                  this.voteNum = true
+                  if (this.webStatus == 1) {
+                    $('.down-modal').fadeIn()
+                  } else {
+                    // showToast({
+                    //   text: res.data.message,
+                    //   zindex: 132
+                    // })
+                    $('.app-modal').fadeIn()
+                  }
+                  $('input[type=checkbox]').prop("checked", false)
+                  this.selectList = []
+                  this.getAllWorkList()
+                } else if(res.data.status == 400) {
+                  if(res.data.message.indexOf('每人每天一共') > -1) {
+                    this.voteNum = false
+                    if (this.webStatus == 1) {
+                      $('.down-modal').fadeIn()
+                      // $('.down-modal2').fadeIn()
+                    } else {
+                      // showToast({
+                      //   text: '你今天已经投过票，明天再来吧',
+                      //   zindex: 132
+                      // })
+                      $('.app-modal').fadeIn()
+                      // $('.app-modal2').fadeIn()
+                    }
+                  } else {
+                    showToast({
+                      text: res.data.message,
+                      zindex: 132
+                    })
+                  }
+                }
+            })
+          }
+        },
+        // 搜索作品
+        search () {
+          var result = this.allWorkList.some((res) => {
+            if (res.extend == this.serachValue || res.title == this.serachValue) {
+              this.allWorkList.splice(0, 0, res)
+              return true
+            }
+          })
+          if (this.serachValue == '') {
+            showToast({
+              text: '请输入作品编号或姓名'
+            })
+            return false
+          } else if(result) {
+            // showToast({
+            //   text: '查询中，请稍后...'
+            // })
+            this.allWorkList = [...new Set(this.allWorkList)]
+          } else {
+            showToast({
+              text: '没有找到对应的作品'
+            })
+          }
+        },
+        // 关闭点赞后的提示
+        closeDown (tipsName) {
+          console.log('111')
+          $(`.${tipsName}`).fadeOut()
+        },
+        // 抽奖
+        getGift () {
+          if (this.lotterynum > 0) {
+            var voteid = 'https://wechat.ip885.cn/wechatapi/lottery/y5eVOMaE'
+            let url = voteid+"/draw"
+            axios.get(url, {
+              headers: {
+                Authorization: 'Bearer '+ this.token
+              }
+            }).then((res) => {
+              if (res.data.status == 400) {
+                showToast({
+                  text: res.data.message
+                })
+              } else {
+                var _this = this
+                $('.lucky-draw').fadeIn()
+                // console.log(res.data.data)
+                setTimeout(() => {
+                  if (res.data.data.prize_id == 0) {
+                    $('.lucky-draw').fadeOut()
+                    showAlert({
+                        text: '很遗憾，没有中奖', 
+                        btnText: '确定', //按钮的文本
+                        zindex: 155, 
+                        success: function() { //点击按钮后的回调函数
+                          // console.log('没有中奖,执行openGift')
+                          _this.openGift()
+                        }
+                    })
+                  } else {
+                    $('.lucky-draw').fadeOut()
+                    _this.openGift()
+                    this.prizeName = res.data.data.prize_name
+                    $('.mask').fadeIn()
+                    // showAlert({
+                    //     text: '恭喜获得' + res.data.data.prize_name, 
+                    //     btnText: '确认', //按钮的文本
+                    //     zindex: 155, 
+                    //     bgColor: '#f80723',
+                    //     success: function() { //点击按钮后的回调函数
+                    //       // console.log('中奖,执行openGift')
+                    //       _this.openGift()
+                    //       // window.location.href='https://wechat.ip885.cn/cr/my-coupon/index.html?wid=8'
+                    //     }
+                    // })
+                  }
+                }, 2500)
+              }
+              this.getlotterynum()
+            })
+          } else {
+            showToast({
+              text: '今天的抽奖次数已用光，明天再来吧！'
+            })
+          }
+        },
+        // 获取抽奖次数
+        getlotterynum () {
+          var voteid = 'https://wechat.ip885.cn/wechatapi/lottery/y5eVOMaE'
+          let url = voteid+"/getlotterynum"
+          axios.get(url, {
+            headers: {
+              Authorization: 'Bearer '+ this.token
+            }
+          }).then((res) => {
+            // console.log(res.data.data.total)
+            if (res.data.status == 200) {
+              this.lotterynum = res.data.data.total
+            } else {
+              this.lotterynum = 0
+            }
+            
+          })
+        },
+        // 个人中奖列表
+        openGift () {
+          var voteid = 'https://wechat.ip885.cn/wechatapi/lottery/y5eVOMaE'
+          let url = voteid+"/mylotterylist"
+          axios.get(url, {
+            headers: {
+              Authorization: 'Bearer '+ this.token
+            }
+          }).then((res) => {
+            // console.log('openGift', res.data)
+            // console.log(res.data.data.data.length)
+            if (res.data.data.data.length > 0) {
+              this.isWinning = true
+            }
+          })
+        },
+        // 关闭中奖显示
+        closeMask () {
+          $('.mask').fadeOut()
+        },
+        toAppLogin () {
+          GHapp.showLogin()
+          window.location.reload()
+        }
+      },
+      updated () {
+        this.$nextTick(() => {
+          var mySwiper = new Swiper('.swiper-container', {
+            // autoplay: true,
+            loop: false,
+            initialSlide: 0,
+            navigation: {
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
+            },
+            lazy: {
+              loadPrevNext: true,
+            },
+            observer:true,
+            observeParents:true,
+          })
+        })
+      }
+    })
+  </script>
+</body>
+</html>
